@@ -1,0 +1,39 @@
+from selenium import webdriver
+from bs4 import BeautifulSoup
+from requests import get
+
+
+
+# website urls
+url = "https://www.imdb.com/search/title/?locations=Regina,%20Saskatchewan&view=simple"
+response = get(url)
+print(response.text[:500])
+
+
+html_soup = BeautifulSoup(response.text, 'html.parser')
+
+
+title = html_soup.title
+print(title)
+print(html_soup.prettify())
+
+
+text = html_soup.get_text()
+print(html_soup.text)
+
+
+#title working
+
+
+for item1 in html_soup.find_all('div', class_ = 'col-title'):
+        for item2 in item1.find_all('a'):
+           if '/title' in item2['href']:
+                print(item2.contents[0])
+
+
+#imdb rating
+imdb_rating = html_soup.find_all(class_ = 'col-imdb-rating')
+
+for t1 in html_soup.find_all('div', class_ = 'col-imdb-rating'):
+    for t2 in t1.find('strong'):
+        print(t2)
