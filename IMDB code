@@ -1,39 +1,55 @@
-from selenium import webdriver
 from bs4 import BeautifulSoup
 from requests import get
+import pandas as pd 
+import plotly.graph_objects as go
 
+
+ 
 
 
 # website urls
-url = "https://www.imdb.com/search/title/?locations=Regina,%20Saskatchewan&view=simple"
+url = "https://www.imdb.com/search/title/?locations=Regina,%20Saskatchewan&view=advanced"
 response = get(url)
-print(response.text[:500])
+
+ 
 
 
 html_soup = BeautifulSoup(response.text, 'html.parser')
 
+ 
 
-title = html_soup.title
-print(title)
-print(html_soup.prettify())
+stuff = html_soup.find_all('div', class_ = 'lister-item mode-advanced')
 
+ 
 
-text = html_soup.get_text()
-print(html_soup.text)
+print(type(stuff))
+print(len(stuff))
 
+ 
+d = pd.DataFrame()
+for item in stuff:
+    name = item.h3.a.text
+    rating_check = item.find('strong')
+    if rating_check is None:
+        rating = "N/A"
+    else:
+        rating = item.strong.text
 
-#title working
+ 
 
+    vote_check = item.find('span', attrs = {'name':'nv'})
+    if vote_check is None:
+        votes = "N/A"
+    else:
+        votes = item.find('span', attrs = {'name':'nv'})['data-value']
+    d.append({'name': name, 'rating': rating, 'votes': votes()})
+pd.DataFrame(d)
 
-for item1 in html_soup.find_all('div', class_ = 'col-title'):
-        for item2 in item1.find_all('a'):
-           if '/title' in item2['href']:
-                print(item2.contents[0])
-
-
-#imdb rating
-imdb_rating = html_soup.find_all(class_ = 'col-imdb-rating')
-
-for t1 in html_soup.find_all('div', class_ = 'col-imdb-rating'):
-    for t2 in t1.find('strong'):
-        print(t2)
+fig = go.Figure(data=[go.Bar(x=Name, y=rating,
+            hovertext=[votes]])])
+fig.update_traces(marker_color='rgb(158,202,225)', marker_line_color='rgb(8,48,107)',
+                  marker_line_width=1.5, opacity=0.6)
+fig.update_layout(title_text='Regina Movies Rating')
+fig.show()        
+        
+    print (name, '    ', rating, '    ', votes)
