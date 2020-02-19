@@ -12,6 +12,10 @@ import numpy as np
 import plotly.graph_objects as go
 import plotly as py
 import plotly.graph_objs as go
+import chart_studio.plotly as ply
+
+
+ply.sign_in('frohshow', 'ZdZ5n1xVnk708vh0177F')
 
 
 
@@ -72,13 +76,12 @@ for link in links:
             rating = item.strong.text
             #ratings.append(rating)
 
-
         vote_check = item.find('span', attrs = {'name':'nv'})
         if vote_check is None:
-            votes = "N/A"
+           votes = 0
             #votess.append(votes)
         else:
-            votes = item.find('span', attrs = {'name':'nv'})['data-value']
+            votes = int(item.find('span', attrs = {'name':'nv'})['data-value'])
             #votess.append(votes)
             
         # this ensures we dont get any episodes in list    
@@ -104,8 +107,17 @@ for link in links:
 movie_ratings = pd.DataFrame({'MOVIE': names, 'RATING': ratings, 'VOTES': votess, 'EPISODE': episodes})
 movie_ratings.style.set_properties(**{'text-align': 'left'})
 
+movie_ratings.query('VOTES > 0', inplace = True)
 
-fig = px.bar(movie_ratings, x='MOVIE', y='RATING')
+
+
+fig = px.bar(movie_ratings, x='MOVIE', y='RATING',
+             hover_data=['MOVIE', 'RATING', 'VOTES'],
+             category_orders={'VOTES'})
+
+fig.update_layout(height=400,title_text='Movies shot in Regina Ratings based')
+
+plot_url =ply.plot(fig)
 py.offline.plot(fig, filename='basic-bar1.html')
 
 
