@@ -1,126 +1,129 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Feb  6 15:40:23 2020
+Created on Wed Feb 19 11:09:47 2020
 
 @author: frohlict
 """
 
-
-
-from selenium import webdriver
-from bs4 import BeautifulSoup
 from requests import get
-
-
-
-# website urls
-url = "https://www.imdb.com/search/title/?locations=Regina,%20Saskatchewan&view=simple"
-response = get(url)
-print(response.text[:500])
-
-
-html_soup = BeautifulSoup(response.text, 'html.parser')
-
-
-title = html_soup.title
-print(title)
-print(html_soup.prettify())
-
-
-text = html_soup.get_text()
-print(html_soup.text)
-
-
-#title working
-
-
-for item1 in html_soup.find_all('div', class_ = 'col-title'):
-        for item2 in item1.find_all('a'):
-           if '/title' in item2['href']:
-                print(item2.contents[0])
-
-
-#imdb rating
-imdb_rating = html_soup.find_all(class_ = 'col-imdb-rating')
-
-for t1 in html_soup.find_all('div', class_ = 'col-imdb-rating'):
-    for t2 in t1.find('strong'):
-        print(t2)
-
-# imdd votes
-
-
-
-
-#justin
-
-
- 
-
-from bs4 import BeautifulSoup
-from requests import get
-import pandas as pd 
+from bs4 import BeautifulSoup    
+import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
+import plotly as py
+import plotly.graph_objs as go
 
 
- 
+
+import plotly.express as px
+
+
+import time
+# pip install lxml
+
+
+url1 = "https://www.imdb.com/search/title/?locations=Regina,%20Saskatchewan&ref_=adv_prv"
+url2 = "https://www.imdb.com/search/title/?locations=Regina,%20Saskatchewan&start=51&ref_=adv_nxt"
+url3 = "https://www.imdb.com/search/title/?locations=Regina,%20Saskatchewan&start=101&ref_=adv_nxt"
+url4 = "https://www.imdb.com/search/title/?locations=Regina,%20Saskatchewan&start=151&ref_=adv_nxt"
+links = [url1, url2, url3, url4]  #  , url2, url3, url4
+
 
 
 # website urls
-url = "https://www.imdb.com/search/title/?locations=Regina,%20Saskatchewan&view=advanced"
-response = get(url)
-
- 
+#url = "https://www.imdb.com/search/title/?locations=Regina,%20Saskatchewan&start=151&ref_=adv_nxt"
+#"https://www.imdb.com/search/title/?locations=Regina,%20Saskatchewan&view=advanced"
 
 
-html_soup = BeautifulSoup(response.text, 'html.parser')
-
- 
-
-stuff = html_soup.find_all('div', class_ = 'lister-item mode-advanced')
-
- 
-
-print(type(stuff))
-print(len(stuff))
 
 
 names = []
 ratings = []
 votess = []
+episodes = []
 
- 
 
-for item in stuff:
-    name = item.h3.a.text
-    names.append(name)
+
+for link in links: 
+
+
+    response = get(link)
+    html_soup = BeautifulSoup(response.text, 'html.parser')
     
-    rating_check = item.find('strong')
-    if rating_check is None:
-        rating = "N/A"
-        ratings.append(rating)
-    else:
-        rating = item.strong.text
-        ratings.append(rating)
+    stuff = html_soup.find_all('div', class_ = 'lister-item mode-advanced')
 
- 
 
-    vote_check = item.find('span', attrs = {'name':'nv'})
-    if vote_check is None:
-        votes = "N/A"
-        votess.append(votes)
-    else:
-        votes = item.find('span', attrs = {'name':'nv'})['data-value']
-        votess.append(votes)
+
+
+    for item in stuff:
+        name = item.h3.a.text
+        #names.append(name)
+
+
+        xyz = item.h3.find_all('a')    # this gives us a list.  the 2nd item contains the episode.....[<a href="/title/tt0397138/"> Corner Gas</a>, <a href="/title/tt0546118/">I Love Lacey</a>]
+
+
+
+        rating_check = item.find('strong')
+        if rating_check is None:
+            rating = "N/A"
+            #ratings.append(rating)
+        else:
+            rating = item.strong.text
+            #ratings.append(rating)
+
+
+        vote_check = item.find('span', attrs = {'name':'nv'})
+        if vote_check is None:
+            votes = "N/A"
+            #votess.append(votes)
+        else:
+            votes = item.find('span', attrs = {'name':'nv'})['data-value']
+            #votess.append(votes)
+            
+        # this ensures we dont get any episodes in list    
+        if len(xyz) < 2:
+            z = "No Episode"
+            episodes.append(z)
+            names.append(name)
+            ratings.append(rating)
+            votess.append(votes)
+
+
+        #else:
+        #    z =xyz[1].text
+        #    episodes.append(z)
+        #    names.append(name)
+        #    ratings.append(rating)
+        #    votess.append(votes)
+            
+        print ('MOVIE: ', name, 'RATING: ', rating, 'VOTES: ', votes, 'EPISODE: ', z)     #epis
         
-        
-    print ('MOVIE:  ', name, '    ', rating, '    ', votes)
-
-movie_ratings = pd.DataFrame({'MOVIE': names, 'RATING': ratings, 'VOTES': votess})
-
+    time.sleep(4)
+    
+movie_ratings = pd.DataFrame({'MOVIE': names, 'RATING': ratings, 'VOTES': votess, 'EPISODE': episodes})
 movie_ratings.style.set_properties(**{'text-align': 'left'})
 
-import plotly.express as px
+
 fig = px.bar(movie_ratings, x='MOVIE', y='RATING')
 py.offline.plot(fig, filename='basic-bar1.html')
+
+
+print (movie_ratings)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
