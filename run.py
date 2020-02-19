@@ -15,7 +15,7 @@ import plotly.graph_objs as go
 import chart_studio.plotly as ply
 
 
-ply.sign_in('frohshow', 'ZdZ5n1xVnk708vh0177F')
+
 
 
 
@@ -115,9 +115,8 @@ fig = px.bar(movie_ratings, x='MOVIE', y='RATING',
              hover_data=['MOVIE', 'RATING', 'VOTES'],
              category_orders={'VOTES'})
 
-fig.update_layout(height=400,title_text='Movies shot in Regina Ratings based')
+fig.update_layout(height=1000, width=1000, title_text='Movies shot in Regina Ratings')
 
-plot_url =ply.plot(fig)
 py.offline.plot(fig, filename='basic-bar1.html')
 
 
